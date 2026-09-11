@@ -92,7 +92,7 @@ function today(){let d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)
 $('date').value=today();
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
 function save(){localStorage.setItem(KEY,JSON.stringify(records))}
-function mins(t){if(!t || !/^\\d{2}:\\d{2}$/.test(t)) return null;let p=t.split(':');return +p[0]*60 + +p[1]}
+function mins(t){if(!t || !/^\d{2}:\d{2}$/.test(t)) return null;let p=t.split(':');return +p[0]*60 + +p[1]}
 function extra(a,b){let x=mins(a),y=mins(b);if(x===null || y===null) return 0;if(y<x)y+=1440;return Math.max(0,y-x-540)}
 function fmt(n){n=Math.max(0,Math.round(Number(n)||0));return Math.floor(n/60)+'h '+pad(n%60)+'min'}
 function period(){
