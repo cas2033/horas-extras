@@ -92,9 +92,9 @@ function today(){let d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)
 $('date').value=today();
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
 function save(){localStorage.setItem(KEY,JSON.stringify(records))}
-function mins(t){let p=t.split(':');return +p[0]*60 + +p[1]}
-function extra(a,b){let x=mins(a),y=mins(b);if(y<x)y+=1440;return Math.max(0,y-x-540)}
-function fmt(n){n=Math.max(0,Math.round(n));return Math.floor(n/60)+'h '+pad(n%60)+'min'}
+function mins(t){if(!t || !/^\\d{2}:\\d{2}$/.test(t)) return null;let p=t.split(':');return +p[0]*60 + +p[1]}
+function extra(a,b){let x=mins(a),y=mins(b);if(x===null || y===null) return 0;if(y<x)y+=1440;return Math.max(0,y-x-540)}
+function fmt(n){n=Math.max(0,Math.round(Number(n)||0));return Math.floor(n/60)+'h '+pad(n%60)+'min'}
 function period(){
  let d=new Date(($('date').value||today())+'T12:00:00'),y=d.getFullYear(),m=d.getMonth();
  if(d.getDate()<=12)m--; m+=offset; y+=Math.floor(m/12);m=((m%12)+12)%12;
@@ -104,7 +104,8 @@ function period(){
 }
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function render(){
- $('preview').textContent=fmt(extra($('arrival').value,$('departure').value));
+ const hasDeparture=!!$('departure').value;
+ $('preview').textContent=hasDeparture?fmt(extra($('arrival').value,$('departure').value)):'—';
  let p=period();$('periodDate').textContent=p.label;$('periodTitle').textContent=offset===0?'PERÍODO ATUAL':offset<0?'PERÍODO ANTERIOR':'PRÓXIMO PERÍODO';
  let rs=records.filter(r=>r.date>=p.start&&r.date<=p.end).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
  $('total').textContent=fmt(rs.reduce((s,r)=>s+(+r.extra||0),0));$('days').textContent=rs.length;$('count').textContent=rs.length+' registro'+(rs.length===1?'':'s');
