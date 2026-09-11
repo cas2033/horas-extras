@@ -1,0 +1,9 @@
+CONTROLE DE HORAS EXTRAS V2
+
+Arquivo principal: index.html
+
+A V2 foi preparada para uso no celular e computador.
+Os registros são salvos no armazenamento local do navegador.
+Use BACKUP regularmente para gerar backup-horas-extras.json.
+
+Para instalação como PWA, o conteúdo deve ser publicado em um endereço HTTPS.

@@ -1,0 +1,9 @@
+{
+  "name":"Controle de Horas Extras",
+  "short_name":"Horas Extras",
+  "start_url":"./index.html",
+  "display":"standalone",
+  "background_color":"#f4f6f9",
+  "theme_color":"#2563eb",
+  "lang":"pt-BR"
+}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Horas Extras">
+<title>Horas Extras</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f9;color:#172033;font-family:Arial,Helvetica,sans-serif}
+.app{max-width:760px;margin:auto;padding:14px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:23px;margin:0}.sub{font-size:12px;color:#667085}.card{background:#fff;border:1px solid #dfe4ec;border-radius:15px;padding:15px;margin-bottom:12px}
+.title{font-size:17px;font-weight:800;margin:0 0 3px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{margin-bottom:10px}label{display:block;font-size:11px;font-weight:800;color:#667085;margin-bottom:5px}
+input{width:100%;height:45px;border:1px solid #d6dce5;border-radius:9px;padding:0 11px;font-size:16px;color:#172033;background:#fff}
+.calc{border:1px solid #dfe4ec;background:#f7f9fc;border-radius:11px;padding:11px;text-align:center;margin:3px 0 10px}
+.calc-label{font-size:11px;font-weight:800;color:#667085}.calc-value{font-size:27px;font-weight:900;margin-top:2px}
+button{font:inherit;cursor:pointer}.primary{width:100%;height:46px;border:0;border-radius:9px;background:#2563eb;color:white;font-weight:800}
+.period{display:flex;align-items:center;gap:7px}.arrow{width:43px;height:43px;border:1px solid #d6dce5;background:#fff;border-radius:9px;font-size:23px}
+.ptext{text-align:center;flex:1}.ptitle{font-size:10px;color:#667085;font-weight:800}.pdate{font-size:15px;font-weight:900;margin-top:2px}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.sum{background:#f7f9fc;border:1px solid #dfe4ec;border-radius:10px;text-align:center;padding:11px}.sumlabel{font-size:10px;color:#667085;font-weight:800}.sumvalue{font-size:23px;font-weight:900;margin-top:3px}
+.row{display:flex;justify-content:space-between;gap:8px;padding:11px 0;border-bottom:1px solid #e6eaf0}.row:last-child{border-bottom:0}.info{min-width:0}.info strong{font-size:14px}.info div{font-size:12px;color:#667085;margin-top:3px}.extra{font-size:14px;font-weight:900;white-space:nowrap}
+.actions{display:flex;gap:5px;margin-top:6px}.small{border:1px solid #d6dce5;background:#fff;border-radius:7px;padding:6px 8px;font-size:11px;font-weight:700}.del{color:#c62828}
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.tool{min-height:43px;border:1px solid #d6dce5;background:#fff;border-radius:9px;font-size:12px;font-weight:800}
+.note{font-size:11px;color:#667085;line-height:1.4;margin-top:7px}.empty{text-align:center;color:#667085;font-size:13px;padding:17px 4px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#172033;color:#fff;padding:10px 15px;border-radius:9px;font-size:13px;display:none;z-index:20}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:15px;z-index:10}.modalbox{background:#fff;border-radius:14px;padding:18px;width:min(420px,100%)}.modalbox h2{margin:0 0 8px;font-size:18px}.modalbox p{font-size:14px;color:#667085}.macts{display:flex;justify-content:flex-end;gap:8px}.macts button{padding:9px 13px;border-radius:8px;border:1px solid #d6dce5;background:#fff;font-weight:700}.confirm{background:#dc2626!important;color:#fff;border-color:#dc2626!important}
+@media(max-width:430px){.app{padding:10px}.tools{grid-template-columns:1fr}.grid{gap:8px}.card{padding:13px}.pdate{font-size:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><div><h1>Horas Extras</h1><div class="sub">Expediente 08:00 às 17:00 • 1h de almoço</div></div></div>
+
+<section class="card">
+<div class="title">Novo registro</div><div class="sub">Informe o serviço e os horários trabalhados.</div>
+<form id="form">
+<div class="grid" style="margin-top:12px">
+<div class="field"><label>DATA</label><input id="date" type="date" required></div>
+<div class="field"><label>Nº DO SERVIÇO</label><input id="service" inputmode="numeric" placeholder="Ex.: 45821" required></div>
+</div>
+<div class="grid">
+<div class="field"><label>HORA DE CHEGADA</label><input id="arrival" type="time" value="08:00" required></div>
+<div class="field"><label>HORA DE SAÍDA</label><input id="departure" type="time" required></div>
+</div>
+<div class="field"><label>OBSERVAÇÃO (OPCIONAL)</label><input id="note" placeholder="Opcional"></div>
+<div class="calc"><div class="calc-label">HORA EXTRA DO DIA</div><div class="calc-value" id="preview">0h 00min</div></div>
+<button class="primary" type="submit">+ REGISTRAR HORA EXTRA</button>
+<div class="note">Cálculo: tempo entre chegada e saída − 1h de almoço − 8h de jornada normal.</div>
+</form>
+</section>
+
+<section class="card">
+<label>CONSULTA DE PERÍODO</label>
+<div class="period">
+<button class="arrow" id="prev" type="button">‹</button>
+<div class="ptext"><div class="ptitle" id="periodTitle">PERÍODO ATUAL</div><div class="pdate" id="periodDate"></div></div>
+<button class="arrow" id="next" type="button">›</button>
+</div>
+<div class="summary">
+<div class="sum"><div class="sumlabel">TOTAL DE HORA EXTRA</div><div class="sumvalue" id="total">0h 00min</div></div>
+<div class="sum"><div class="sumlabel">DIAS COM EXTRA</div><div class="sumvalue" id="days">0</div></div>
+</div>
+</section>
+
+<section class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div class="title">Lançamentos</div><div class="sub" id="count">0 registros</div></div>
+<div id="list"></div>
+</section>
+
+<section class="card">
+<div class="title">Dados e Backup</div><div class="sub" style="margin-bottom:11px">Use o backup para guardar seus registros.</div>
+<div class="tools">
+<button class="tool" id="backup" type="button">💾 BACKUP</button>
+<button class="tool" id="restore" type="button">↻ RESTAURAR</button>
+<button class="tool" id="csv" type="button">📊 EXPORTAR CSV</button>
+</div>
+<input id="file" type="file" accept=".json,application/json" style="display:none">
+</section>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="modalbox"><h2>Excluir registro?</h2><p>O lançamento será removido do aplicativo.</p><div class="macts"><button id="cancel" type="button">Cancelar</button><button id="confirm" class="confirm" type="button">Excluir</button></div></div></div>
+
+<script>
+(()=> {
+const KEY='horas_extras_v2'; let records=load(), offset=0, deleteId=null;
+const $=id=>document.getElementById(id), pad=n=>String(n).padStart(2,'0');
+function today(){let d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+$('date').value=today();
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify(records))}
+function mins(t){let p=t.split(':');return +p[0]*60 + +p[1]}
+function extra(a,b){let x=mins(a),y=mins(b);if(y<x)y+=1440;return Math.max(0,y-x-540)}
+function fmt(n){n=Math.max(0,Math.round(n));return Math.floor(n/60)+'h '+pad(n%60)+'min'}
+function period(){
+ let d=new Date(($('date').value||today())+'T12:00:00'),y=d.getFullYear(),m=d.getMonth();
+ if(d.getDate()<=12)m--; m+=offset; y+=Math.floor(m/12);m=((m%12)+12)%12;
+ let end=new Date(y,m+1,12);
+ return {start:y+'-'+pad(m+1)+'-13',end:end.getFullYear()+'-'+pad(end.getMonth()+1)+'-12',
+ label:'13/'+pad(m+1)+'/'+y+' → 12/'+pad(end.getMonth()+1)+'/'+end.getFullYear()};
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ $('preview').textContent=fmt(extra($('arrival').value,$('departure').value));
+ let p=period();$('periodDate').textContent=p.label;$('periodTitle').textContent=offset===0?'PERÍODO ATUAL':offset<0?'PERÍODO ANTERIOR':'PRÓXIMO PERÍODO';
+ let rs=records.filter(r=>r.date>=p.start&&r.date<=p.end).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+ $('total').textContent=fmt(rs.reduce((s,r)=>s+(+r.extra||0),0));$('days').textContent=rs.length;$('count').textContent=rs.length+' registro'+(rs.length===1?'':'s');
+ $('list').innerHTML=rs.length?rs.map(r=>`<div class="row"><div class="info"><strong>${r.date.split('-').reverse().join('/')}</strong><div>${esc(r.arrival)} → ${esc(r.departure)} • Serviço ${esc(r.service)}</div>${r.note?`<div>${esc(r.note)}</div>`:''}<div class="actions"><button class="small" data-edit="${r.id}" type="button">✏️ Editar</button><button class="small del" data-del="${r.id}" type="button">🗑️ Excluir</button></div></div><div class="extra">${fmt(r.extra)}</div></div>`).join(''):'<div class="empty">Nenhum lançamento neste período.</div>';
+}
+function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',1800)}
+$('arrival').onchange=render;$('departure').oninput=render;
+$('date').onchange=()=>{offset=0;render()};
+$('form').onsubmit=e=>{e.preventDefault();let x=extra($('arrival').value,$('departure').value);if(x<=0){toast('Esse horário não gera hora extra.');return}records.push({id:Date.now(),date:$('date').value,arrival:$('arrival').value,departure:$('departure').value,service:$('service').value.trim(),note:$('note').value.trim(),extra:x});save();$('service').value='';$('note').value='';$('departure').value='';render();$('service').focus();toast('Hora extra registrada!')};
+$('prev').onclick=()=>{offset--;render()};$('next').onclick=()=>{if(offset<0)offset++;render()};
+$('list').onclick=e=>{
+ let ed=e.target.closest('[data-edit]'),de=e.target.closest('[data-del]');
+ if(ed){let r=records.find(x=>x.id==ed.dataset.edit);if(!r)return;$('date').value=r.date;$('arrival').value=r.arrival;$('departure').value=r.departure;$('service').value=r.service;$('note').value=r.note||'';records=records.filter(x=>x.id!==r.id);save();offset=0;render();scrollTo({top:0,behavior:'smooth'});toast('Registro carregado para edição.')}
+ if(de){deleteId=+de.dataset.del;$('modal').style.display='flex'}
+};
+$('cancel').onclick=()=>{$('modal').style.display='none';deleteId=null};
+$('confirm').onclick=()=>{records=records.filter(x=>x.id!==deleteId);save();$('modal').style.display='none';deleteId=null;render();toast('Registro excluído.')};
+$('backup').onclick=()=>{let b=new Blob([JSON.stringify({app:'Horas Extras',version:2,records},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='backup-horas-extras.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('Backup criado.')};
+$('restore').onclick=()=>$('file').click();
+$('file').onchange=e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>{try{let d=JSON.parse(rd.result),a=Array.isArray(d)?d:d.records;if(!Array.isArray(a))throw 0;if(!confirm('Restaurar este backup? Os registros atuais serão substituídos.'))return;records=a.filter(r=>r.date&&r.arrival&&r.departure&&r.service).map(r=>({...r,id:+r.id||Date.now()+Math.random(),extra:extra(r.arrival,r.departure)}));save();offset=0;render();toast('Backup restaurado.')}catch(x){alert('Arquivo de backup inválido.')}e.target.value=''};rd.readAsText(f)};
+$('csv').onclick=()=>{if(!records.length){toast('Não há registros para exportar.');return}let rows=[['Data','Chegada','Saída','Nº do Serviço','Hora Extra','Observação'],...records.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.arrival,r.departure,r.service,fmt(r.extra),r.note||''])],csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='horas-extras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('CSV exportado.')};
+render();
+})();
+</script>
+</body>
+</html>
