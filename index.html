@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2563eb">
+<link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Horas Extras">
@@ -128,6 +129,11 @@ $('restore').onclick=()=>$('file').click();
 $('file').onchange=e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReader();rd.onload=()=>{try{let d=JSON.parse(rd.result),a=Array.isArray(d)?d:d.records;if(!Array.isArray(a))throw 0;if(!confirm('Restaurar este backup? Os registros atuais serão substituídos.'))return;records=a.filter(r=>r.date&&r.arrival&&r.departure&&r.service).map(r=>({...r,id:+r.id||Date.now()+Math.random(),extra:extra(r.arrival,r.departure)}));save();offset=0;render();toast('Backup restaurado.')}catch(x){alert('Arquivo de backup inválido.')}e.target.value=''};rd.readAsText(f)};
 $('csv').onclick=()=>{if(!records.length){toast('Não há registros para exportar.');return}let rows=[['Data','Chegada','Saída','Nº do Serviço','Hora Extra','Observação'],...records.sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.arrival,r.departure,r.service,fmt(r.extra),r.note||''])],csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='horas-extras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('CSV exportado.')};
 render();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
 })();
 </script>
 </body>
