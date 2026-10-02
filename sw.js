@@ -1,4 +1,4 @@
-const CACHE='horas-extras-offline-v8';
+const CACHE='horas-extras-offline-v9';
 const SHELL=['./','./index.html','./manifest.json'];
 
 self.addEventListener('install',event=>{
