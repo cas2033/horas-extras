@@ -92,4 +92,44 @@ $('file').onchange=e=>{let f=e.target.files[0];if(!f)return;let rd=new FileReade
 $('csv').onclick=()=>{if(!records.length){toast('Não há registros para exportar.');return}let rows=[['Data','Chegada','Saída','Nº do Serviço','Hora Extra','Acionamento','Observação'],...records.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.arrival,r.departure,r.service,fmt(r.extra),r.callout?'Sim':'Não',r.note||''])],csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='horas-extras.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('CSV exportado.')};
 render();setInterval(updateInter,30000);if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 })();
-</script><div id="clockModal" class="clock-backdrop" role="dialog" aria-modal="true" aria-label="Selecionar horário"><div class="clock-box"><div class="clock-header"><div class="clock-caption" id="clockLabel">Selecione o horário</div><div class="clock-time"><button type="button" id="clockHour" class="selected">08</button>:<button type="button" id="clockMinute">00</button></div></div><div class="clock-dial" id="clockDial"><div class="clock-hand" id="clockHand"></div><div class="clock-center"></div></div><div class="clock-keyboard"><button type="button" id="clockKeyboard">Digitar horário</button></div><div class="clock-manual" id="clockManual"><input id="clockManualHour" type="number" min="0" max="23" aria-label="Hora"><span>:</span><input id="clockManualMinute" type="number" min="0" max="59" aria-label="Minutos"></div><div class="clock-actions"><button type="button" id="clockCancel">Cancelar</button><button type="button" id="clockOk" class="clock-ok">Definir</button></div></div></div></body></html>
+</script><div id="clockModal" class="clock-backdrop" role="dialog" aria-modal="true" aria-label="Selecionar horário"><div class="clock-box"><div class="clock-header"><div class="clock-caption" id="clockLabel">Selecione o horário</div><div class="clock-time"><button type="button" id="clockHour" class="selected">08</button>:<button type="button" id="clockMinute">00</button></div></div><div class="clock-dial" id="clockDial"><div class="clock-hand" id="clockHand"></div><div class="clock-center"></div></div><div class="clock-keyboard"><button type="button" id="clockKeyboard">Digitar horário</button></div><div class="clock-manual" id="clockManual"><input id="clockManualHour" type="number" min="0" max="23" aria-label="Hora"><span>:</span><input id="clockManualMinute" type="number" min="0" max="59" aria-label="Minutos"></div><div class="clock-actions"><button type="button" id="clockCancel">Cancelar</button><button type="button" id="clockOk" class="clock-ok">Definir</button></div></div></div><script>
+/* V15: relógio circular funcional. Isolado dos cálculos e do armazenamento. */
+(()=>{
+ const $=id=>document.getElementById(id);
+ const modal=$('clockModal'), dial=$('clockDial');
+ if(!modal||!dial)return;
+ let target=null,hour=8,minute=0,mode='hour';
+ const pad=n=>String(n).padStart(2,'0');
+ function draw(){
+  $('clockHour').textContent=pad(hour);$('clockMinute').textContent=pad(minute);
+  $('clockHour').classList.toggle('selected',mode==='hour');
+  $('clockMinute').classList.toggle('selected',mode==='minute');
+  dial.querySelectorAll('.clock-number').forEach(n=>n.remove());
+  const size=dial.clientWidth,mid=size/2;
+  const nums=mode==='hour'?[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]:Array.from({length:12},(_,i)=>i*5);
+  for(const n of nums){
+   const inner=mode==='hour'&&(n===0||n>=13),angle=(mode==='hour'?n%12:n/5)*Math.PI/6;
+   const radius=mid*(inner?.52:.82),button=document.createElement('button');
+   button.type='button';button.className='clock-number'+(inner?' inner':'')+((mode==='hour'?hour:minute)===n?' active':'');
+   button.textContent=mode==='hour'?(n===0?'00':String(n)):pad(n);
+   button.style.left=(mid+Math.sin(angle)*radius)+'px';button.style.top=(mid-Math.cos(angle)*radius)+'px';
+   button.addEventListener('click',()=>{if(mode==='hour'){hour=n;mode='minute'}else minute=n;draw()});
+   dial.appendChild(button);
+  }
+  const val=mode==='hour'?hour%12:minute/5;
+  const angle=val*Math.PI/6;
+  const hand=$('clockHand');hand.style.height=(mid*(mode==='hour'&&(hour===0||hour>=13)?.52:.82))+'px';
+  hand.style.transform='rotate('+angle*180/Math.PI+'deg)';
+ }
+ function close(){modal.classList.remove('open');target=null}
+ function open(input){target=input;const m=/^(\d{1,2}):(\d{2})$/.exec(input.value||'');hour=m?Math.min(23,+m[1]):8;minute=m?Math.min(59,+m[2]):0;mode='hour';$('clockManual').classList.remove('show');modal.classList.add('open');draw()}
+ ['arrival','departure'].forEach(id=>{const input=$(id);if(!input)return;input.addEventListener('click',()=>open(input));input.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(input)}})});
+ $('clockHour').addEventListener('click',()=>{mode='hour';draw()});
+ $('clockMinute').addEventListener('click',()=>{mode='minute';draw()});
+ $('clockKeyboard').addEventListener('click',()=>{$('clockManual').classList.toggle('show');$('clockManualHour').value=pad(hour);$('clockManualMinute').value=pad(minute)});
+ $('clockCancel').addEventListener('click',close);
+ $('clockOk').addEventListener('click',()=>{if(!target)return;if($('clockManual').classList.contains('show')){const h=Number($('clockManualHour').value),m=Number($('clockManualMinute').value);if(!Number.isInteger(h)||h<0||h>23||!Number.isInteger(m)||m<0||m>59){alert('Informe um horário válido entre 00:00 e 23:59.');return}hour=h;minute=m}target.value=pad(hour)+':'+pad(minute);target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));close()});
+ modal.addEventListener('click',e=>{if(e.target===modal)close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal.classList.contains('open'))close()});
+})();
+</script></body></html>
